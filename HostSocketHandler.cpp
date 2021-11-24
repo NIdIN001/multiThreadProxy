@@ -32,6 +32,8 @@ void HostSocketHandler::run() {
         cache->addChunk(url, chunk);
 
         length = clientSocket->_write(buf, length);
+
+        std::cout << "send " << length << std::endl;
         if (length <= 0) {
             proxy->closeSession(clientSocket);
             return;
