@@ -10,10 +10,9 @@ TcpSocket::TcpSocket(int fd) {
     this->fd = fd;
 }
 
-TcpSocket::~TcpSocket() {
-}
+TcpSocket::~TcpSocket() = default;
 
-char *TcpSocket::getHostName() {
+char *TcpSocket::getHostName() const {
     return hostName;
 }
 
@@ -38,14 +37,14 @@ void TcpSocket::_connect(char *hostName, int port) {
     }
 }
 
-int TcpSocket::_read(char *buf, int length) {
+int TcpSocket::_read(char *buf, int length) const {
     return read(fd, buf, length);
 }
 
-int TcpSocket::_write(char *buf, int length) {
+int TcpSocket::_write(char *buf, int length) const {
     return write(fd, buf, length);
 }
 
-void TcpSocket::_close() {
+void TcpSocket::_close() const {
     close(fd);
 }

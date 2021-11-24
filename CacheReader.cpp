@@ -10,25 +10,27 @@ CacheReader::CacheReader(Cache *cache, TcpSocket *writeSocket, HttpProxy *proxy)
     this->url = nullptr;
 
     this->runningThread = new std::thread(&CacheReader::run, this);
+    runningThread->detach();
 }
 
-CacheReader::~CacheReader() {
-}
+CacheReader::~CacheReader() = default;
 
 void CacheReader::read(char *url) {
-    this->url = url;
     std::unique_lock<std::mutex> locker(queueMutex);
 
+    this->url = url;
     messageQueue = cache->getChunks(url);
 
     if (cache->entryIsFull(url)) {
-        std::cout << "Cache reader with write socket fd = " << writeSocket->fd << " is reading " << url
-                  << " (entry for this URL is full)" << std::endl;
+        //std::cout << "Cache reader with write socket fd = " << writeSocket->fd << " is reading " << url
+        //          << " (entry for this URL is full)" << std::endl;
     } else {
-        std::cout << "Cache reader with write socket fd = " << writeSocket->fd << " is reading " << url
-                  << " (entry for this URL isn't full)" << std::endl;
+        //std::cout << "Cache reader with write socket fd = " << writeSocket->fd << " is reading " << url
+        //          << " (entry for this URL isn't full)" << std::endl;
         cache->listenToUrl(url, this);
     }
+
+    std::cout << messageQueue.size() << " = From cache" << std::endl;
 
     queueHasData = true;
     queueCondVar.notify_one();
@@ -36,13 +38,15 @@ void CacheReader::read(char *url) {
 
 [[noreturn]] void CacheReader::run() {
     while (true) {
+        if (isStop)
+            return;
+
         std::unique_lock<std::mutex> locker(queueMutex);
 
         while (!queueHasData) {
             queueCondVar.wait(locker);
         }
 
-        //send chunks from queue
         std::cout << "Writing" << std::endl;
         std::cout << "messageQueue.size() = " << messageQueue.size() << std::endl;
         while (!messageQueue.empty()) {

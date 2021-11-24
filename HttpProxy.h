@@ -6,12 +6,16 @@
 #include "CacheReader.h"
 
 class ClientSocketHandler;
+
 class HostSocketHandler;
+
 class Cache;
+
 class CacheReader;
 
-struct ProxyEntry {
-    TcpSocket *clinetSocket;
+class ProxyEntry {
+public:
+    TcpSocket *clientSocket;
     TcpSocket *hostSocket;
 
     ClientSocketHandler *clientSocketHandler;
@@ -21,8 +25,6 @@ struct ProxyEntry {
 };
 
 class HttpProxy {
-
-private:
     ServerSocket serverSocket;
     Cache *cache;
     std::mutex proxyEntriesMutex;
@@ -33,7 +35,7 @@ private:
     void acceptClient();
 
 public:
-    HttpProxy(int listenPort);
+    explicit HttpProxy(int listenPort);
 
     ~HttpProxy();
 

@@ -1,9 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
-
 #include "Cache.h"
 #include "TcpSocket.h"
 #include "HttpProxy.h"
@@ -14,6 +10,8 @@ struct messageChunk;
 
 class ClientSocketHandler {
 private:
+    static const int BUFFER_SIZE = 2048;
+
     TcpSocket *clientSocket;
     TcpSocket *hostSocket = nullptr;
     HttpProxy *proxy;
@@ -25,6 +23,8 @@ private:
     std::thread *runningThread;
 
 public:
+    bool isStop = false;
+
     ClientSocketHandler(TcpSocket *clientSocket, HttpProxy *proxy);
 
     ~ClientSocketHandler();
@@ -33,4 +33,3 @@ public:
 
     int getClientFd();
 };
-

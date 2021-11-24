@@ -1,17 +1,15 @@
 #pragma once
 
-#include <vector>
-#include <iostream>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 
 #include "TcpSocket.h"
 #include "Cache.h"
 #include "HttpProxy.h"
 
 class HttpProxy;
+
 class Cache;
+
 struct messageChunk;
 
 class CacheReader {
@@ -32,6 +30,8 @@ private:
     [[noreturn]] void run();
 
 public:
+    bool isStop = false;
+
     CacheReader(Cache *cache, TcpSocket *writeSocket, HttpProxy *proxy);
 
     ~CacheReader();

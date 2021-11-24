@@ -1,28 +1,19 @@
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
+
 #include <sys/poll.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <string>
-#include <arpa/inet.h>
-#include <netdb.h>
+#include <iostream>
 
 #include "TcpSocket.h"
 
-class ServerSocket{
+class ServerSocket {
 public:
-	int fd;
+    int fd;
 
-	ServerSocket(int port);
-	~ServerSocket();
+    explicit ServerSocket(int port);
 
-	TcpSocket _accept();
+    ~ServerSocket();
 
-	void _close();
+    TcpSocket _accept() const;
+
+    void _close() const;
 };
-

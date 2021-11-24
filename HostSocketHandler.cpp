@@ -1,5 +1,4 @@
 #include "HostSocketHandler.h"
-#include "HostSocketHandler.h"
 
 HostSocketHandler::HostSocketHandler(TcpSocket *clientSocket, TcpSocket *hostSocket, Cache *cache, HttpProxy *proxy) {
     this->clientSocket = clientSocket;
@@ -9,14 +8,16 @@ HostSocketHandler::HostSocketHandler(TcpSocket *clientSocket, TcpSocket *hostSoc
     this->url = nullptr;
 
     this->runningThread = new std::thread(&HostSocketHandler::run, this);
+    runningThread->detach();
 }
 
-HostSocketHandler::~HostSocketHandler() {
-}
+HostSocketHandler::~HostSocketHandler() = default;
 
 void HostSocketHandler::run() {
     while (true) {
-        //read
+        if (isStop)
+            return;
+
         char *buf = new char[MAX_CHUNK_SIZE];
         int length = hostSocket->_read(buf, MAX_CHUNK_SIZE);
 
@@ -25,13 +26,11 @@ void HostSocketHandler::run() {
             return;
         }
 
-        //add chunk to cache
         messageChunk chunk;
         chunk.buf = buf;
         chunk.length = length;
         cache->addChunk(url, chunk);
 
-        //write
         length = clientSocket->_write(buf, length);
         if (length <= 0) {
             proxy->closeSession(clientSocket);
@@ -40,9 +39,8 @@ void HostSocketHandler::run() {
     }
 }
 
-void HostSocketHandler::finishReadingResponce() {
+void HostSocketHandler::finishReadingResponse() {
     if (url != nullptr) {
-        //notify cache that entry with current url is full
         cache->makeEntryFull(url);
 
         std::cout << "HostSocketHandler with hostFd = " << hostSocket->fd << " has finished reading " << url
@@ -50,7 +48,7 @@ void HostSocketHandler::finishReadingResponce() {
     }
 }
 
-void HostSocketHandler::waitForNextResponce(char *url) {
+void HostSocketHandler::waitForNextResponse(char *url) {
     this->url = url;
 
     std::cout << "HostSocketHandler with hostFd = " << hostSocket->fd << " starting to read " << url << std::endl;

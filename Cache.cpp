@@ -1,5 +1,9 @@
 #include "Cache.h"
 
+Cache::Cache() = default;
+
+Cache::~Cache() = default;
+
 void Cache::addEntry(char *url) {
     cacheEntry cacheEntry;
     cacheEntry.url = url;
@@ -10,7 +14,6 @@ void Cache::addEntry(char *url) {
 }
 
 void Cache::addChunk(char *url, messageChunk chunk) {
-    //push chunk
     std::unique_lock<std::mutex> entriesLocker(entriesMutex);
     for (cacheEntry &it: entries) {
         if (strcmp(it.url, url) == 0) {
@@ -19,7 +22,6 @@ void Cache::addChunk(char *url, messageChunk chunk) {
         }
     }
 
-    //notify listeners
     std::unique_lock<std::mutex> listenersLocker(listenersMutex);
     for (listenerEntry listenerEntry : listeners) {
         if (strcmp(listenerEntry.url, url) == 0) {
@@ -98,11 +100,4 @@ void Cache::clear() {
             cacheEntry.chunks.pop_front();
         }
     }
-}
-
-Cache::Cache() {
-}
-
-
-Cache::~Cache() {
 }

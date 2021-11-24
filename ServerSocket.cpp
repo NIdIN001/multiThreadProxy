@@ -1,12 +1,10 @@
 #include "ServerSocket.h"
-#include <iostream>
 
 ServerSocket::ServerSocket(int port) {
     fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (fd == -1) {
+    if (fd == -1)
         perror("server socket");
-    }
 
     int enable = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
@@ -22,14 +20,12 @@ ServerSocket::ServerSocket(int port) {
     listen(fd, 10);
 }
 
-ServerSocket::~ServerSocket() {
+ServerSocket::~ServerSocket() = default;
+
+TcpSocket ServerSocket::_accept() const {
+    return TcpSocket(accept(fd, (struct sockaddr *) nullptr, nullptr));
 }
 
-TcpSocket ServerSocket::_accept() {
-    int socket = accept(fd, (struct sockaddr *) nullptr, nullptr);
-    return TcpSocket(socket);
-}
-
-void ServerSocket::_close() {
+void ServerSocket::_close() const {
     close(fd);
 }

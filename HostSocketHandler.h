@@ -4,11 +4,10 @@
 #include "Cache.h"
 #include "HttpProxy.h"
 
-#include <queue>
-#include <thread>
-
 class HttpProxy;
+
 class Cache;
+
 struct messageChunk;
 
 class HostSocketHandler {
@@ -24,12 +23,13 @@ private:
     void run();
 
 public:
+    bool isStop = false;
+
     HostSocketHandler(TcpSocket *clientSocket, TcpSocket *hostSocket, Cache *cache, HttpProxy *proxy);
 
     ~HostSocketHandler();
 
-    void finishReadingResponce();
+    void finishReadingResponse();
 
-    void waitForNextResponce(char *url);
+    void waitForNextResponse(char *url);
 };
-
