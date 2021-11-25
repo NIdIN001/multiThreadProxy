@@ -1,5 +1,8 @@
 #include "Cache.h"
 
+std::mutex Cache::listenersMutex;
+std::mutex Cache::entriesMutex;
+
 Cache::Cache() = default;
 
 Cache::~Cache() = default;
@@ -22,6 +25,7 @@ void Cache::addChunk(char *url, messageChunk chunk) {
         }
     }
 
+    std::cout << "addChunk" << std::endl;
     std::unique_lock<std::mutex> listenersLocker(listenersMutex);
     for (listenerEntry listenerEntry : listeners) {
         if (strcmp(listenerEntry.url, url) == 0) {

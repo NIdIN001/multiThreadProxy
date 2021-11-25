@@ -1,5 +1,8 @@
 #include "HttpProxy.h"
 
+
+std::mutex HttpProxy::proxyEntriesMutex;
+
 HttpProxy::HttpProxy(int listenPort) : serverSocket(listenPort) {
     cache = new Cache();
 }
@@ -64,8 +67,7 @@ void HttpProxy::closeSession(int proxyEntryIndex) {
 
 void HttpProxy::gotNewRequest(ClientSocketHandler *clientSocketHandler, char *url) {
     std::unique_lock<std::mutex> locker(proxyEntriesMutex);
-    //std::cout << "Got request for " << url << " from client socket with fd = " << clientSocketHandler->getClientFd()
-    //          << std::endl;
+
     if (!cache->contains(url)) {
         for (ProxyEntry &proxyEntry : proxyEntries) {
             if (proxyEntry.clientSocketHandler == clientSocketHandler) {
@@ -77,28 +79,18 @@ void HttpProxy::gotNewRequest(ClientSocketHandler *clientSocketHandler, char *ur
                 if (proxyEntry.hostSocket == nullptr) {
                     proxyEntry.hostSocket = new TcpSocket();
                     proxyEntry.hostSocket->_connect(hostName, 80);
-                    //std::cout << "Adding host socket: fd = " << proxyEntry.hostSocket->fd << ", hostname = " << hostName
-                    //          << ", pair client socket = " << proxyEntry.clientSocket->fd << std::endl;
-
 
                     clientSocketHandler->setHostSocket(proxyEntry.hostSocket);
 
                     proxyEntry.hostSocketHandler = new HostSocketHandler(proxyEntry.clientSocket, proxyEntry.hostSocket,
                                                                          cache, this);
                 } else if (strcmp(hostName, proxyEntry.hostSocket->getHostName()) != 0) {
-                    //std::cout << "Reconnecting host socket with fd = " << proxyEntry.hostSocket->fd << " from "
-                    //          << proxyEntry.hostSocket->getHostName() << " to " << hostName << std::endl;
-
-                    int oldFd = proxyEntry.hostSocket->fd;
                     proxyEntry.hostSocket->_close();
                     delete proxyEntry.hostSocket;
 
                     proxyEntry.hostSocket = new TcpSocket();
                     proxyEntry.hostSocket->_connect(hostName, 80);
                     clientSocketHandler->setHostSocket(proxyEntry.hostSocket);
-
-                    //std::cout << "New fd for host socket with fd = " << oldFd << " is " << proxyEntry.hostSocket->fd
-                    //          << std::endl;
                 }
 
                 if (proxyEntry.cacheReader->isReading()) {
@@ -118,7 +110,6 @@ void HttpProxy::gotNewRequest(ClientSocketHandler *clientSocketHandler, char *ur
             }
         }
     }
-
 }
 
 void HttpProxy::closeSession(TcpSocket *socket) {

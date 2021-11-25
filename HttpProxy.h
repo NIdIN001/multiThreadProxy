@@ -27,7 +27,8 @@ public:
 class HttpProxy {
     ServerSocket serverSocket;
     Cache *cache;
-    std::mutex proxyEntriesMutex;
+
+    static std::mutex proxyEntriesMutex;
     std::vector<ProxyEntry> proxyEntries;
 
     void closeSession(int proxyEntryIndex);

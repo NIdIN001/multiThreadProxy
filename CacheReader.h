@@ -22,12 +22,10 @@ private:
     static std::mutex queueMutex;
     static std::condition_variable queueCondVar;
 
-    bool queueHasData = false;
-
     std::list<messageChunk> messageQueue;
     std::thread *runningThread;
 
-    [[noreturn]] void run();
+    void run();
 
 public:
     bool isStop = false;

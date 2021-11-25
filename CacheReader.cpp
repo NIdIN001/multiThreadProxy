@@ -21,36 +21,27 @@ void CacheReader::read(char *url) {
     this->url = url;
     messageQueue = cache->getChunks(url);
 
-    if (cache->entryIsFull(url)) {
-        //std::cout << "Cache reader with write socket fd = " << writeSocket->fd << " is reading " << url
-        //          << " (entry for this URL is full)" << std::endl;
-    } else {
-        //std::cout << "Cache reader with write socket fd = " << writeSocket->fd << " is reading " << url
-        //          << " (entry for this URL isn't full)" << std::endl;
+    if (!cache->entryIsFull(url)) {
         cache->listenToUrl(url, this);
     }
 
     std::cout << messageQueue.size() << " = From cache" << std::endl;
 
-    queueHasData = true;
     queueCondVar.notify_one();
 }
 
-[[noreturn]] void CacheReader::run() {
+void CacheReader::run() {
     while (true) {
         if (isStop)
             return;
 
         std::unique_lock<std::mutex> locker(queueMutex);
 
-        while (!queueHasData) {
+        while (messageQueue.empty()) {
             queueCondVar.wait(locker);
         }
 
-        std::cout << "Writing" << std::endl;
-        std::cout << "messageQueue.size() = " << messageQueue.size() << std::endl;
         while (!messageQueue.empty()) {
-
             messageChunk chunk = messageQueue.front();
             messageQueue.pop_front();
 
@@ -58,10 +49,7 @@ void CacheReader::read(char *url) {
             if (length == 0) {
                 proxy->closeSession(writeSocket);
             }
-            chunk.buf[chunk.length] = '\0';
-            std::cout << chunk.buf;
         }
-        queueHasData = false;
     }
 }
 
@@ -81,6 +69,5 @@ bool CacheReader::isReading() {
 void CacheReader::notify(messageChunk chunk) {
     std::unique_lock<std::mutex> locker(queueMutex);
     messageQueue.push_back(chunk);
-    queueHasData = true;
     queueCondVar.notify_one();
 }

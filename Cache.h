@@ -27,10 +27,10 @@ struct listenerEntry {
 
 class Cache {
 private:
-    std::mutex entriesMutex;
-    std::list<cacheEntry> entries;
+    static std::mutex entriesMutex;
+    static std::mutex listenersMutex;
 
-    std::mutex listenersMutex;
+    std::list<cacheEntry> entries;
     std::vector<listenerEntry> listeners;
 
 public:
